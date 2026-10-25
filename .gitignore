@@ -1,0 +1,20 @@
+# كل اللي JavaCC و javac بيولّدوه
+build/
+*.class
+
+# ملفات JavaCC المولّدة لو حد شغّل من غير -OUTPUT_DIRECTORY
+Lexer.java
+LexerConstants.java
+LexerTokenManager.java
+ParseException.java
+SimpleCharStream.java
+Token.java
+TokenMgrError.java
+JavaCharStream.java
+
+# محررات ونظام التشغيل
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

@@ -1,0 +1,89 @@
+/* معمل ٠١ — الـ lexer.  ناقص ٦ حاجات، كل واحدة متعلّمة  ← ١ ... ← ٦ */
+
+options { STATIC = false; }
+
+PARSER_BEGIN(Lexer)
+public class Lexer {
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) { System.out.println("usage:  java Lexer <file>"); return; }
+        Lexer lx = new Lexer(new java.io.FileInputStream(args[0]));
+        int n = 0;
+        for (Token t = lx.getNextToken(); t.kind != EOF; t = lx.getNextToken()) {
+            System.out.println(String.format("%-20s %s",
+                tokenImage[t.kind].replace("\"", ""), t.image));
+            n++;
+        }
+        System.out.println("---- " + n + " tokens ----");
+    }
+}
+PARSER_END(Lexer)
+
+
+/* ← ١ */
+SKIP : {
+    " "
+}
+
+
+/* keywords */
+TOKEN : {
+    < INT:     "int" >
+|   < IF:      "if" >
+|   < PRINTLN: "System.out.println" >
+
+/* ← ٢ */
+
+}
+
+
+/* identifiers */
+TOKEN : {
+/* ← ٣ */
+    < IDENTIFIER: "TODO-1" >
+}
+
+
+/* numeric constants */
+TOKEN : {
+/* ← ٤ */
+    < NUMBER: "TODO-2" >
+}
+
+
+/* string constants */
+TOKEN : {
+/* ← ٥ */
+    < STRING_LITERAL: "TODO-3" >
+}
+
+
+/* special characters */
+TOKEN : {
+    < SEMICOLON: ";" >
+|   < COMMA:     "," >
+|   < DOT:       "." >
+|   < COLON:     ":" >
+|   < LEFT_PAREN:  "(" >
+|   < RIGHT_PAREN: ")" >
+|   < LEFT_BRACE:  "{" >
+|   < RIGHT_BRACE: "}" >
+}
+
+
+/* operators */
+TOKEN : {
+    < ASSIGN:    "=" >
+|   < PLUS:      "+" >
+|   < MINUS:     "-" >
+|   < ASTERISK:  "*" >
+|   < SLASH:     "/" >
+
+/* ← ٦ */
+
+}
+
+
+TOKEN : {
+    < SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n") >
+|   < MULTI_LINE_COMMENT:  "/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/" >
+}
