@@ -1,118 +1,98 @@
-# مشروع الكومبايلر — معامل المادة
+# Compiler Design Labs
 
-تصميم المترجمات · كلية الحاسبات والمعلومات، جامعة المنوفية
-م. محمد شهاب
+Compiler Design — Faculty of Computers and Information, Menoufia University
 
----
+Teaching Assistant: Eng. Mohamed Shehab
 
-## إيه ده
+## About the Project
 
-**مشروع المادة، مقسوم أجزاء.** كل جزء بيبني حتة من الكومبايلر، وفي الآخر
-بيبقى معاك المشروع كامل وانت كاتبه بإيدك.
+This repository contains the lab work for the Compiler Design course. The project is divided into several parts, with each part covering a different stage of building a compiler.
 
-| | الجزء | اللي بتكتبه |
-|---|---|---|
-| **01** | **الـ lexer** | التعبيرات اللي بتقطّع الكود لـ tokens |
-| 02 | جدول الرموز | تجميع الأسماء وأماكنها |
-| 03 | الجرامر | الأسبقية مكتوبة كقواعد |
-| 04 | الـ parser | تركيب الجملة |
-| 05 | الـ atoms | الكود الوسيط |
-| 06 | التنفيذ | تشغيل البرنامج فعلاً |
+| Lab | Topic |
+|---|---|
+| 01 | Lexer |
+| 02 | Symbol Table |
+| 03 | Grammar |
+| 04 | Parser |
+| 05 | Intermediate Code (Atoms) |
+| 06 | Execution |
 
-كل جزء بينزل في وقته. **اللي موجود دلوقتي هو 01.**
+Currently, Lab 01 (Lexer) is available in this repository. The other parts will be added as the course progresses.
 
----
+## Requirements
 
-## السلايدز
+- JDK 21
+- JavaCC (`javacc.jar` is included in the project root)
 
-`slides/JavaCC.pptx` — سلايدات السكشن، **٢٠ سلايدة**. نفس اللي اتعرض قدامكم.
+Download the JDK from [Adoptium](https://adoptium.net/).
 
----
+After installing it, open a new terminal and check that Java is available:
 
-## قبل ما تبدأ — محتاج JDK
-
-مش JRE. **JDK**، لأن فيه `javac`.
-
-**https://adoptium.net** → نزّل **Temurin JDK 21** → Next حتى Finish.
-
-⚠️ وبعد ما تركّبه، **اقفل أي نافذة terminal مفتوحة وافتحها من الأول** — من
-غير كده الجهاز لسه مش شايفه.
-
-للتأكد، افتح terminal واكتب:
-
-```
+```bash
+java -version
 javac -version
 ```
 
-لازم يرد برقم. لو قال `not recognized` يبقى لسه.
+## Running the Lexer
 
-🔴 **ومش محتاج تنزّل JavaCC.** هو موجود في الريبو — ملف `javacc.jar` في
-الروت. متمسحوش.
+Navigate to the lexer folder:
 
----
+```bash
+cd 01-lexer
+```
 
-## التشغيل
+On macOS or Linux, run:
 
-ادخل مجلد الجزء اللي شغّال عليه، وبعدين:
+```bash
+chmod +x run.sh
+./run.sh
+```
 
-| | |
-|---|---|
-| **ويندوز** | دبل كليك على `run.bat` |
-| **ماك / لينكس** | `./run.sh` |
+The script generates the Java files, compiles them, and runs the lexer on `test.txt`.
 
-كل اللي بيتولّد بيروح في مجلد **`build`** جوه الجزء — فمجلدك يفضل نضيف،
-ولو الدنيا اتلخبطت امسح `build` وشغّل تاني.
+## Files
 
----
+Inside `01-lexer`:
 
-## الملفين اللي يهموك
+- `Lexer.jj` — contains the lexer rules written in JavaCC.
+- `test.txt` — the input file used for testing.
+- `run.sh` — runs the lexer on macOS and Linux.
+- `build/` — contains the generated files and compiled classes.
 
-جوه مجلد كل جزء:
+The project may also include `run.bat` for Windows.
 
-| | |
-|---|---|
-| **`Lexer.jj`** | 🔴 **ده اللي بتكتب فيه، وده اللي بتسلّمه.** فيه أماكن فاضية متعلّمة `← ١` لحد `← ٦` |
-| **`test.txt`** | 🔴 **كود الـ Java اللي بتجرّب عليه.** الأداة بتقرا الملف ده وتقطّعه |
+## Testing
 
-`test.txt` فيه دلوقتي:
+The lexer reads Java code from `test.txt` and identifies tokens based on the rules defined in `Lexer.jj`.
+
+For example:
 
 ```java
 int x = 42;
 float rate = 3.14;
 String msg = "Hello World";
-for (i = 0; i < 10; i++) { total += i; }
 ```
 
-**امسحه وغيّره زي ما انت عايز.** كل ما تخلّص قاعدة، حط سطر يختبرها وشغّل.
+You can change the input file to test different cases, then run the script again.
 
-والباقي: `run.bat` / `run.sh` للتشغيل · `javacc.jar` الأداة · `build/`
-اللي بيتولّد — **متعدّلش فيه ومتسلّمهوش**.
+## How It Works
 
-> وفي كل مجلد `README.md` فيه تفاصيل الجزء ده وأسئلته ودرجاته.
+The script runs these commands:
 
----
-
-## التلات أوامر اللي بتتنفّذ
-
-السكريبت بيطبعهم قدامك عشان تعرف انت عملت إيه:
-
-```
+```bash
 java -cp ../javacc.jar javacc -OUTPUT_DIRECTORY=build Lexer.jj
 javac -d build build/*.java
 java -cp build Lexer test.txt
 ```
 
-| | |
-|---|---|
-| الأول | JavaCC بيقرا **وصفك** ويكتب كود Java |
-| التاني | Java بتترجم الكود ده |
-| التالت | بيشغّله على ملف الاختبار |
+1. JavaCC reads `Lexer.jj` and generates Java source files.
+2. `javac` compiles the generated files.
+3. Java runs the lexer using `test.txt` as input.
 
-ولو حابب تشغّلهم بإيدك واحد واحد بدل السكريبت، دول هما.
+## Notes
 
----
+- Make changes to `Lexer.jj`, not the generated files inside `build/`.
+- Use `test.txt` to check your lexer rules.
+- Follow the instructions for each lab when preparing submissions.
+- Check the requirements for each lab, as the submission files may differ.
 
-## التسليم
-
-**اللي بتسلّمه هو ملف الـ `.jj` بتاعك وبس.** مجلد `build` مبيتسلّمش —
-ده كود مولّد انت مكتبتش منه حرف.
