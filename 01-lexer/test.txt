@@ -1,7 +1,71 @@
-int x = 42;
-float rate = 3.14;
-float avogadro = 6.02E+23;
-String msg = "Hello World";
-int whiles = 0;
-for (i = 0; i < 10; i++) { total += i; }
-if (a >= b) { System.out.println(msg); }
+
+public class Demo {
+    public static void main(String[] args) {
+        // 1. Keywords and identifiers
+        int x = 42;
+        int whiles = 10;
+        double rate = 3.14;
+        double avogadro = 6.02E+23;
+        double small = 1e-3;
+
+        // 2. Strings and character literals
+        String msg = "Hello World";
+        String escaped = "She said \"Hello\"";
+        char letter = 'A';
+        char newline = '\n';
+
+        // 3. Arithmetic and compound operators
+        x++;
+        x--;
+        x += 5;
+        x -= 2;
+        x *= 3;
+        x /= 2;
+        x %= 4;
+
+        // 4. Comparison and logical operators
+        if (x >= 0 && x <= 100) {
+            System.out.println(msg);
+        }
+
+        if (x == 10 || x != 5) {
+            x = x + 1;
+        }
+
+        // 5. Loops and separators
+        for (int i = 0; i < 10; i++) {
+            x += i;
+        }
+
+        while (x > 0) {
+            x--;
+        }
+
+        int[] numbers = {1, 2, 3};
+        x = numbers[0];
+
+        // 6. Bitwise and shift operators
+        x = x << 1;
+        x = x >> 1;
+        x = x >>> 1;
+        x &= 7;
+        x |= 2;
+        x ^= 1;
+
+        // 7. Other separators and operators
+        String result = x > 0 ? "Positive" : "Zero";
+        // ... and :: are also tested below
+        Runnable task = () -> System.out.println("Done");
+
+        /* Multiline comment
+           This comment should be ignored.
+        */
+
+        // 8. Identifier corner cases
+        int _count = 1;
+        int item2 = 2;
+        int whilesAgain = 3;
+
+        System.out.println(result);
+    }
+}

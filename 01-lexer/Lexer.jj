@@ -1,89 +1,285 @@
-/* معمل ٠١ — الـ lexer.  ناقص ٦ حاجات، كل واحدة متعلّمة  ← ١ ... ← ٦ */
 
-options { STATIC = false; }
+/* Compiler Design Lab 01 - Lexer */
+
+options {
+    STATIC = false;
+}
 
 PARSER_BEGIN(Lexer)
+
 public class Lexer {
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) { System.out.println("usage:  java Lexer <file>"); return; }
-        Lexer lx = new Lexer(new java.io.FileInputStream(args[0]));
-        int n = 0;
-        for (Token t = lx.getNextToken(); t.kind != EOF; t = lx.getNextToken()) {
-            System.out.println(String.format("%-20s %s",
-                tokenImage[t.kind].replace("\"", ""), t.image));
-            n++;
+        if (args.length == 0) {
+            System.out.println("Usage: java Lexer <file>");
+            return;
         }
-        System.out.println("---- " + n + " tokens ----");
+
+        try (java.io.InputStream input =
+                 new java.io.FileInputStream(args[0])) {
+
+            Lexer lexer = new Lexer(input);
+            int count = 0;
+
+            while (true) {
+                Token token = lexer.getNextToken();
+
+                if (token.kind == EOF) {
+                    break;
+                }
+
+                if (token.kind == INVALID_NUMBER) {
+                    System.err.println(
+                        "Invalid number at line " + token.beginLine
+                        + ", column " + token.beginColumn
+                        + ": " + token.image
+                    );
+                    System.exit(1);
+                }
+
+                System.out.printf("%-28s %s%n",
+                    tokenImage[token.kind].replace("\"", ""),
+                    token.image);
+                count++;
+            }
+
+            System.out.println("---- " + count + " tokens ----");
+
+        } catch (TokenMgrError e) {
+            System.err.println("Lexical error: " + e.getMessage());
+            System.exit(1);
+        }
     }
 }
+
 PARSER_END(Lexer)
 
 
-/* ← ١ */
+/* Whitespace and single-line comments are ignored.
+   Corner case: // comment at EOF is valid without a final newline.
+*/
+
 SKIP : {
     " "
+|   "\t"
+|   "\n"
+|   "\r"
+|   "\f"
+|   < LINE_COMMENT: "//" (~["\n", "\r"])* >
 }
 
 
-/* keywords */
+/* Multiline comments.
+   Corner case: an unclosed /* comment should cause a lexical error at EOF.
+*/
+
+<DEFAULT> MORE : {
+    "/*" : IN_COMMENT
+}
+
+<IN_COMMENT> SKIP : {
+    "*/" : DEFAULT
+}
+
+<IN_COMMENT> MORE : {
+    < COMMENT_CHAR: ~[] >
+}
+
+
+/* Keywords.
+   Corner case: while is WHILE, but whiles is one IDENTIFIER.
+*/
+
 TOKEN : {
-    < INT:     "int" >
-|   < IF:      "if" >
+    < INT: "int" >
+|   < IF: "if" >
 |   < PRINTLN: "System.out.println" >
-
-/* ← ٢ */
-
+|   < FLOAT: "float" >
+|   < DOUBLE: "double" >
+|   < STRING: "String" >
+|   < CHAR: "char" >
+|   < BOOLEAN: "boolean" >
+|   < BYTE: "byte" >
+|   < SHORT: "short" >
+|   < LONG: "long" >
+|   < VOID: "void" >
+|   < ELSE: "else" >
+|   < WHILE: "while" >
+|   < FOR: "for" >
+|   < DO: "do" >
+|   < SWITCH: "switch" >
+|   < CASE: "case" >
+|   < DEFAULT_KEYWORD: "default" >
+|   < BREAK: "break" >
+|   < CONTINUE: "continue" >
+|   < RETURN: "return" >
+|   < CLASS: "class" >
+|   < PUBLIC: "public" >
+|   < PRIVATE: "private" >
+|   < PROTECTED: "protected" >
+|   < STATIC: "static" >
+|   < FINAL: "final" >
+|   < ABSTRACT: "abstract" >
+|   < NEW: "new" >
+|   < THIS: "this" >
+|   < SUPER: "super" >
+|   < IMPORT: "import" >
+|   < PACKAGE: "package" >
+|   < EXTENDS: "extends" >
+|   < IMPLEMENTS: "implements" >
+|   < INTERFACE: "interface" >
+|   < TRY: "try" >
+|   < CATCH: "catch" >
+|   < FINALLY: "finally" >
+|   < THROW: "throw" >
+|   < THROWS: "throws" >
+|   < INSTANCEOF: "instanceof" >
+|   < TRUE: "true" >
+|   < FALSE: "false" >
+|   < NULL: "null" >
 }
 
 
-/* identifiers */
+/* Identifiers.
+   Examples: total, item2, _count, $value.
+   main is an identifier, not a Java keyword.
+*/
+
 TOKEN : {
-/* ← ٣ */
-    < IDENTIFIER: "TODO-1" >
+      < IDENTIFIER:
+        ["a"-"z", "A"-"Z", "_", "$"]
+        (["a"-"z", "A"-"Z", "0"-"9", "_", "$"])*
+    >
 }
 
 
-/* numeric constants */
+/* Invalid numeric forms.
+   Examples: 12E, 12E+, 3.14.15.
+   Valid example: 6.02E+23 is matched as NUMBER.
+*/
+
+
 TOKEN : {
-/* ← ٤ */
-    < NUMBER: "TODO-2" >
+    < INVALID_NUMBER:
+        (
+            (["0"-"9"])+ "." (["0"-"9"])+ "." (["0"-"9"])+
+          | (["0"-"9"])+ ("." (["0"-"9"])+)? ["E", "e"] (["+","-"])?
+        )
+    >
 }
 
 
-/* string constants */
+
+/* Numeric constants.
+   Examples: 42, 3.14, 6.02E+23, 1e-3.
+   Hexadecimal, binary, digit separators and suffixes are not supported here.
+*/
+
+
 TOKEN : {
-/* ← ٥ */
-    < STRING_LITERAL: "TODO-3" >
+    < NUMBER:
+        (
+            (["0"-"9"])+
+          | (["0"-"9"])+ "." (["0"-"9"])+
+          | (["0"-"9"])+ ["E", "e"] (["0"-"9"])+
+          | (["0"-"9"])+ ["E", "e"] ["+", "-"] (["0"-"9"])+
+          | (["0"-"9"])+ "." (["0"-"9"])+ ["E", "e"] (["0"-"9"])+
+          | (["0"-"9"])+ "." (["0"-"9"])+ ["E", "e"] ["+", "-"] (["0"-"9"])+
+        )
+    >
 }
 
 
-/* special characters */
+/* String literals.
+   Examples: "Hello", "Say \"Hi\"", "Line\nNext".
+   Unclosed strings and raw newlines should cause a lexical error.
+   Escape sequences are recognized, but not all Java escape rules are validated.
+*/
+
 TOKEN : {
-    < SEMICOLON: ";" >
-|   < COMMA:     "," >
-|   < DOT:       "." >
-|   < COLON:     ":" >
-|   < LEFT_PAREN:  "(" >
+    < STRING_LITERAL:
+        "\""
+        (~["\"", "\\", "\n", "\r"]
+        | "\\" ~["\n", "\r"])*
+        "\""
+    >
+}
+
+
+/* Character literals.
+   Examples: 'A', '\n', '\''.
+   Empty or multi-character literals are not accepted by this rule.
+*/
+
+TOKEN : {
+    < CHAR_LITERAL:
+        "'"
+        (~["'", "\\", "\n", "\r"]
+        | "\\" ~["\n", "\r"])
+        "'"
+    >
+}
+
+
+/* Separators.
+   Corner case: ... should be one ELLIPSIS token.
+*/
+
+TOKEN : {
+    < ELLIPSIS: "..." >
+|   < DOUBLE_COLON: "::" >
+|   < SEMICOLON: ";" >
+|   < COMMA: "," >
+|   < DOT: "." >
+|   < COLON: ":" >
+|   < QUESTION: "?" >
+|   < LEFT_PAREN: "(" >
 |   < RIGHT_PAREN: ")" >
-|   < LEFT_BRACE:  "{" >
+|   < LEFT_BRACE: "{" >
 |   < RIGHT_BRACE: "}" >
+|   < LEFT_BRACKET: "[" >
+|   < RIGHT_BRACKET: "]" >
 }
 
 
-/* operators */
-TOKEN : {
-    < ASSIGN:    "=" >
-|   < PLUS:      "+" >
-|   < MINUS:     "-" >
-|   < ASTERISK:  "*" >
-|   < SLASH:     "/" >
-
-/* ← ٦ */
-
-}
-
+/* Operators.
+   Corner cases: <=, ==, ++ and >>>= each match as one token.
+*/
 
 TOKEN : {
-    < SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n") >
-|   < MULTI_LINE_COMMENT:  "/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/" >
+    < UNSIGNED_RIGHT_SHIFT_ASSIGN: ">>>=" >
+|   < LEFT_SHIFT_ASSIGN: "<<=" >
+|   < RIGHT_SHIFT_ASSIGN: ">>=" >
+|   < UNSIGNED_RIGHT_SHIFT: ">>>" >
+|   < LEFT_SHIFT: "<<" >
+|   < RIGHT_SHIFT: ">>" >
+|   < EQUAL: "==" >
+|   < NOT_EQUAL: "!=" >
+|   < LESS_EQUAL: "<=" >
+|   < GREATER_EQUAL: ">=" >
+|   < INCREMENT: "++" >
+|   < DECREMENT: "--" >
+|   < PLUS_ASSIGN: "+=" >
+|   < MINUS_ASSIGN: "-=" >
+|   < MULTIPLY_ASSIGN: "*=" >
+|   < DIVIDE_ASSIGN: "/=" >
+|   < MODULO_ASSIGN: "%=" >
+|   < AND_ASSIGN: "&=" >
+|   < OR_ASSIGN: "|=" >
+|   < XOR_ASSIGN: "^=" >
+|   < AND: "&&" >
+|   < OR: "||" >
+|   < ARROW: "->" >
+|   < ASSIGN: "=" >
+|   < PLUS: "+" >
+|   < MINUS: "-" >
+|   < MULTIPLY: "*" >
+|   < DIVIDE: "/" >
+|   < MODULO: "%" >
+|   < LESS_THAN: "<" >
+|   < GREATER_THAN: ">" >
+|   < NOT: "!" >
+|   < BIT_AND: "&" >
+|   < BIT_OR: "|" >
+|   < XOR: "^" >
+|   < BIT_NOT: "~" >
 }
